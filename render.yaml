@@ -1,0 +1,55 @@
+services:
+  # Web service
+  - type: web
+    name: tr-placement-calculator
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+      
+      # Ensure directory structure exists
+      mkdir -p templates static
+      
+      # Handle the case where files are in the wrong locations
+      if [ -f "index.html" ]; then
+        echo "Found index.html in root directory, copying to templates/"
+        cp index.html templates/
+      fi
+      
+      if [ -f "style.css" ]; then
+        echo "Found style.css in root directory, copying to static/"
+        cp style.css static/
+      fi
+      
+      # Copy files from app directory if they exist
+      if [ -d "app/templates" ]; then
+        echo "Copying files from app/templates to templates/"
+        cp -r app/templates/* templates/ || echo "Warning: Could not copy app/templates content"
+      fi
+      
+      if [ -d "app/static" ]; then
+        echo "Copying files from app/static to static/"
+        cp -r app/static/* static/ || echo "Warning: Could not copy app/static content"
+      fi
+      
+      # Verify template exists
+      if [ ! -f "templates/index.html" ]; then
+        echo "WARNING: index.html not found in templates directory after setup"
+        ls -la templates/
+      else
+        echo "✅ templates/index.html successfully configured"
+      fi
+      
+      # Verify static files exist
+      if [ ! -f "static/style.css" ]; then
+        echo "WARNING: style.css not found in static directory after setup"
+        ls -la static/
+      else
+        echo "✅ static/style.css successfully configured"
+      fi
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      - key: MONGO_URI
+        sync: false  # This prevents render.yaml from overriding the env var you set in dashboard
+    healthCheckPath: /debug  # Check the debug endpoint for health 
