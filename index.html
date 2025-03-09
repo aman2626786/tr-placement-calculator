@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TR Placement Predictor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container py-5">
+        <div class="text-center mb-4">
+            <div class="logo-container">
+                <div class="logo">
+                    <span class="logo-text">TR</span>
+                </div>
+            </div>
+            <h1 class="page-header">Placement Package Predictor</h1>
+            <p class="page-description">
+                Find out your expected placement package based on your CGPA
+            </p>
+        </div>
+        
+        <!-- User Counter -->
+        <div class="user-counter-container">
+            <div class="counter-item">
+                <div class="counter-value">{{ total_users }}</div>
+                <div class="counter-label">Total Users</div>
+            </div>
+            <div class="counter-divider"></div>
+            <div class="counter-item">
+                <div class="counter-value">{{ predictions }}</div>
+                <div class="counter-label">Predictions Made</div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>CGPA to Package Calculator</h3>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('predict') }}" method="post">
+                            <div class="form-group">
+                                <label for="cgpa"><i class="fas fa-graduation-cap mr-2"></i>Enter your CGPA (0-10):</label>
+                                <input type="number" id="cgpa" name="cgpa" class="form-control" step="0.01" min="0" max="10" value="{{ cgpa }}" required>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-calculator mr-2"></i>Predict Package
+                                </button>
+                            </div>
+                        </form>
+                        
+                        {% if prediction_text %}
+                        <div class="alert alert-success mt-4 celebration" role="alert">
+                            <div class="text-center">
+                                <i class="fas fa-award mr-2"></i>
+                                <h4>{{ prediction_text }}</h4>
+                                <p>Congratulations on your achievement!</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if error %}
+                        <div class="alert alert-danger mt-4" role="alert">
+                            <div class="text-center">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                <h5>{{ error }}</h5>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h3>About This Predictor</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>This application uses a <span class="highlight">Linear Regression</span> model trained on placement data to predict your package based on CGPA.</p>
+                        <div class="row mt-4">
+                            <div class="col-md-4">
+                                <div class="feature-item">
+                                    <i class="fas fa-chart-line feature-icon"></i>
+                                    <h5>Data-Driven</h5>
+                                    <p>Based on actual placement statistics</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="feature-item">
+                                    <i class="fas fa-brain feature-icon"></i>
+                                    <h5>ML-Powered</h5>
+                                    <p>Uses regression algorithms</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="feature-item">
+                                    <i class="fas fa-bolt feature-icon"></i>
+                                    <h5>Instant Results</h5>
+                                    <p>Get predictions in real-time</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Feedback Form -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h3>Your Feedback</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if feedback_success %}
+                        <div class="alert alert-success" role="alert">
+                            <div class="text-center">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                <h5>Thank you for your feedback!</h5>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if feedback_error %}
+                        <div class="alert alert-danger" role="alert">
+                            <div class="text-center">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                <h5>{{ feedback_error }}</h5>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <form action="{{ url_for('feedback') }}" method="post">
+                            <div class="form-group">
+                                <label for="name"><i class="fas fa-user mr-2"></i>Your Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email"><i class="fas fa-envelope mr-2"></i>Your Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="message"><i class="fas fa-comment mr-2"></i>Message</label>
+                                <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><i class="fas fa-star mr-2"></i>Rating</label>
+                                <div class="rating-container text-center my-3">
+                                    <div class="rating">
+                                        <input type="radio" id="star5" name="rating" value="5" checked>
+                                        <label for="star5" title="5 stars">★</label>
+                                        <input type="radio" id="star4" name="rating" value="4">
+                                        <label for="star4" title="4 stars">★</label>
+                                        <input type="radio" id="star3" name="rating" value="3">
+                                        <label for="star3" title="3 stars">★</label>
+                                        <input type="radio" id="star2" name="rating" value="2">
+                                        <label for="star2" title="2 stars">★</label>
+                                        <input type="radio" id="star1" name="rating" value="1">
+                                        <label for="star1" title="1 star">★</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane mr-2"></i>Submit Feedback
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer mt-5 py-3">
+        <div class="container text-center">
+            <span class="text-muted">© 2023 TR Placement Predictor | Created for academic purposes</span>
+            <div class="dev-credit">Designed & Developed by Aman Sharma</div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+    
+    {% if prediction_text %}
+    <script>
+        // Trigger confetti celebration
+        $(document).ready(function() {
+            var count = 200;
+            var defaults = {
+                origin: { y: 0.7 }
+            };
+
+            function fire(particleRatio, opts) {
+                confetti({
+                    ...defaults,
+                    ...opts,
+                    particleCount: Math.floor(count * particleRatio)
+                });
+            }
+
+            fire(0.25, {
+                spread: 26,
+                startVelocity: 55,
+            });
+            fire(0.2, {
+                spread: 60,
+            });
+            fire(0.35, {
+                spread: 100,
+                decay: 0.91,
+                scalar: 0.8
+            });
+            fire(0.1, {
+                spread: 120,
+                startVelocity: 25,
+                decay: 0.92,
+                scalar: 1.2
+            });
+            fire(0.1, {
+                spread: 120,
+                startVelocity: 45,
+            });
+        });
+    </script>
+    {% endif %}
+    
+    <script>
+        // Star rating functionality
+        $(document).ready(function() {
+            const stars = document.querySelectorAll('.rating label');
+            stars.forEach((star, index) => {
+                star.addEventListener('click', () => {
+                    const radioId = star.getAttribute('for');
+                    document.getElementById(radioId).checked = true;
+                });
+            });
+        });
+    </script>
+</body>
+</html> 
